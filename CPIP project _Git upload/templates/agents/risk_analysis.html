@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Risk Analysis | CPIP{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0A0D14; --bg-glow: #0E1522; --panel: #11151F;
+        --border: #232A38; --accent: #4FA8E8; --accent-soft: #7FC4F0;
+        --text: #EDEFF4; --muted: #7B8494; --muted-2: #545C6B;
+        --success: #3DDC84; --danger: #E8615D; --warning: #E8B84F;
+        --purple: #8B5CF6; --purple-soft: #A78BFA;
+    }
+    body { background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%); background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+    .sentinel-topbar { border-bottom: 1px solid var(--border); padding: 1rem 1.75rem; }
+    .sentinel-topbar .brand { font-weight: 700; font-size: 1.1rem; color: var(--accent-soft); text-decoration: none; font-family: 'Space Grotesk', sans-serif; }
+    .sentinel-topbar .version-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-left: 0.6rem; }
+    .sentinel-nav a { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 4px; }
+    .sentinel-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--danger); text-align: center; display: block; margin-bottom: 0.75rem; }
+    .hero-heading { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); text-align: center; color: var(--text); margin-bottom: 2rem; }
+    .risk-card { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--danger); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+    .risk-card.severity-high { border-left-color: var(--danger); }
+    .risk-card.severity-medium { border-left-color: var(--warning); }
+    .risk-card.severity-low { border-left-color: var(--accent); }
+    .risk-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+    .risk-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--text); }
+    .risk-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .badge { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; border-radius: 4px; padding: 0.2rem 0.7rem; }
+    .badge-severity-high { background: rgba(232, 97, 93, 0.15); color: var(--danger); border: 1px solid rgba(232, 97, 93, 0.3); }
+    .badge-severity-medium { background: rgba(232, 184, 79, 0.15); color: var(--warning); border: 1px solid rgba(232, 184, 79, 0.3); }
+    .badge-severity-low { background: rgba(79, 168, 232, 0.15); color: var(--accent-soft); border: 1px solid rgba(79, 168, 232, 0.3); }
+    .badge-category { background: var(--panel-2); color: var(--muted); border: 1px solid var(--border); }
+    .badge-ai { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--purple-soft); border: 1px solid var(--purple); border-radius: 4px; padding: 0.15rem 0.6rem; letter-spacing: 0.08em; }
+    .risk-description { color: var(--text); font-size: 0.9rem; line-height: 1.6; margin-bottom: 0.75rem; }
+    .risk-mitigation { background: var(--panel-2); border-radius: 8px; padding: 0.75rem 1rem; border: 1px solid var(--border); }
+    .risk-mitigation .label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--success); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; display: block; }
+    .risk-mitigation .text { color: var(--text); font-size: 0.88rem; }
+    .btn-primary-sentinel { background: var(--accent); border: 1px solid var(--accent); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.5rem 1.5rem; border-radius: 6px; text-decoration: none; display: inline-block; }
+    .btn-primary-sentinel:hover { background: var(--accent-soft); color: #06121F; }
+    .sentinel-statusbar { border-top: 1px solid var(--border); padding: 0.9rem 1.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); margin-right: 0.4rem; }
+    .status-sub { font-size: 0.65rem; color: var(--muted-2); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="sentinel-topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'reports:upload_report' %}" class="brand">CPIP</a>
+        <span class="version-tag">AI AGENTS MODULE</span>
+    </div>
+    <nav class="sentinel-nav d-flex align-items-center gap-2">
+        <a href="{% url 'reports:report_list' %}">Reports</a>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </nav>
+</header>
+
+<div class="container-xl py-5">
+    <span class="eyebrow">⚠️ AI Risk Detection</span>
+    <h1 class="hero-heading">{{ company.company_name }} — Risk Analysis</h1>
+
+    <div class="row">
+        <div class="col-lg-9 mx-auto">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <span class="badge-ai">POWERED BY GEMINI</span>
+                {% if saved_count %}
+                    <span class="badge-ai" style="color: var(--success); border-color: var(--success);">{{ saved_count }} RISKS SAVED</span>
+                {% endif %}
+            </div>
+
+            {% for risk in risks %}
+                <div class="risk-card severity-{{ risk.priority|default:'medium' }}">
+                    <div class="risk-header">
+                        <span class="risk-title">{{ risk.risk_type }}</span>
+                        <div class="risk-meta">
+                            <span class="badge badge-category">{{ risk.risk_category|upper }}</span>
+                            <span class="badge badge-severity-{% if risk.severity >= 7 %}high{% elif risk.severity >= 4 %}medium{% else %}low{% endif %}">
+                                Severity: {{ risk.severity }}/10
+                            </span>
+                            <span class="badge badge-category">{{ risk.priority|upper }}</span>
+                        </div>
+                    </div>
+                    <p class="risk-description">{{ risk.description }}</p>
+                    <div class="risk-mitigation">
+                        <span class="label">✓ Mitigation Strategy</span>
+                        <div class="text">{{ risk.mitigation }}</div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="risk-card text-center">
+                    <p style="color: var(--muted);">No risks detected.</p>
+                </div>
+            {% endfor %}
+
+            <div class="text-center mt-4">
+                <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">← Back to Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="sentinel-statusbar d-flex flex-wrap justify-content-between align-items-center">
+    <div><div><span class="status-dot"></span>AI RISK AGENT ACTIVE</div><div class="status-sub">DETECTION ENGINE</div></div>
+    <div class="text-end"><div>AGENTS MODULE</div><div class="status-sub">CPIP PLATFORM V1</div></div>
+</footer>
+
+{% endblock %}

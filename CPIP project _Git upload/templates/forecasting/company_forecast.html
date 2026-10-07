@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Forecast | CPIP{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0A0D14; --bg-glow: #0E1522; --panel: #11151F;
+        --border: #232A38; --accent: #4FA8E8; --accent-soft: #7FC4F0;
+        --text: #EDEFF4; --muted: #7B8494; --muted-2: #545C6B;
+        --success: #3DDC84; --danger: #E8615D; --warning: #E8B84F;
+    }
+    body { background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%); background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+    .sentinel-topbar { border-bottom: 1px solid var(--border); padding: 1rem 1.75rem; }
+    .sentinel-topbar .brand { font-weight: 700; font-size: 1.1rem; color: var(--accent-soft); text-decoration: none; font-family: 'Space Grotesk', sans-serif; }
+    .sentinel-topbar .version-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-left: 0.6rem; }
+    .sentinel-nav a { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 4px; }
+    .sentinel-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-soft); text-align: center; display: block; margin-bottom: 0.75rem; }
+    .hero-heading { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); text-align: center; color: var(--text); margin-bottom: 2rem; }
+    .forecast-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .forecast-card h4 { font-family: 'JetBrains Mono', monospace; color: var(--accent-soft); margin-bottom: 1rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    .metric-tabs, .period-tabs { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
+    .metric-tab, .period-tab { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; padding: 0.5rem 1.25rem; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); text-decoration: none; transition: all 0.15s ease; }
+    .metric-tab:hover, .period-tab:hover { color: var(--text); border-color: var(--accent); }
+    .metric-tab.active, .period-tab.active { background: var(--accent); color: #06121F; border-color: var(--accent); }
+    .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+    .metric-row:last-child { border-bottom: none; }
+    .metric-label { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .metric-value { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--text); }
+    .badge-future { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--accent-soft); border: 1px solid var(--accent); border-radius: 4px; padding: 0.15rem 0.6rem; letter-spacing: 0.08em; }
+    .btn-primary-sentinel { background: var(--accent); border: 1px solid var(--accent); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.5rem 1.5rem; border-radius: 6px; text-decoration: none; display: inline-block; }
+    .btn-primary-sentinel:hover { background: var(--accent-soft); color: #06121F; }
+    .btn-save { background: var(--success); border: 1px solid var(--success); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; padding: 0.4rem 1.2rem; border-radius: 6px; text-decoration: none; display: inline-block; }
+    .btn-save:hover { background: #4ade80; color: #06121F; }
+    .segment-select { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.8rem; min-width: 220px; }
+    .segment-select:focus { border-color: var(--accent); outline: none; }
+    .sentinel-statusbar { border-top: 1px solid var(--border); padding: 0.9rem 1.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); margin-right: 0.4rem; }
+    .status-sub { font-size: 0.65rem; color: var(--muted-2); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="sentinel-topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'reports:upload_report' %}" class="brand">CPIP</a>
+        <span class="version-tag">FORECASTING MODULE</span>
+    </div>
+    <nav class="sentinel-nav d-flex align-items-center gap-2">
+        <a href="{% url 'reports:report_list' %}">Reports</a>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </nav>
+</header>
+
+<div class="container-xl py-5">
+    <span class="eyebrow">📈 Forecast Engine</span>
+    <h1 class="hero-heading">{{ company.company_name }} — Forecast</h1>
+
+    <div class="metric-tabs">
+        <a href="?metric=revenue&periods={{ periods }}" class="metric-tab {% if metric == 'revenue' %}active{% endif %}">Revenue</a>
+        <a href="?metric=profit&periods={{ periods }}" class="metric-tab {% if metric == 'profit' %}active{% endif %}">Profit</a>
+        <a href="?metric=assets&periods={{ periods }}" class="metric-tab {% if metric == 'assets' %}active{% endif %}">Assets</a>
+        <a href="?metric=debt&periods={{ periods }}" class="metric-tab {% if metric == 'debt' %}active{% endif %}">Debt</a>
+        <a href="?metric=segment&periods={{ periods }}" class="metric-tab {% if metric == 'segment' %}active{% endif %}">Segment</a>
+    </div>
+
+    {% if metric == 'segment' and available_segments %}
+    <div style="text-align: center; margin-bottom: 1rem;">
+        <form method="get" style="display: inline-block;">
+            <input type="hidden" name="metric" value="segment">
+            <input type="hidden" name="periods" value="{{ periods }}">
+            <select name="segment" class="segment-select" onchange="this.form.submit()">
+                <option value="">-- Select Segment --</option>
+                {% for s in available_segments %}
+                    <option value="{{ s }}" {% if s == segment %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="period-tabs">
+        <a href="?metric={{ metric }}&periods=3{% if segment %}&segment={{ segment }}{% endif %}" class="period-tab {% if periods == 3 %}active{% endif %}">3 Years</a>
+        <a href="?metric={{ metric }}&periods=5{% if segment %}&segment={{ segment }}{% endif %}" class="period-tab {% if periods == 5 %}active{% endif %}">5 Years</a>
+        <a href="?metric={{ metric }}&periods=7{% if segment %}&segment={{ segment }}{% endif %}" class="period-tab {% if periods == 7 %}active{% endif %}">7 Years</a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9 mx-auto">
+            {% if result.success %}
+                <div class="forecast-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 style="margin: 0;">📊 Historical {% if segment %}{{ segment }}{% else %}{{ metric|title }}{% endif %}</h4>
+                        <span class="badge-future">{{ result.historical|length }} YEARS DATA</span>
+                    </div>
+                    {% for row in result.historical %}
+                        <div class="metric-row">
+                            <span class="metric-label">{{ row.year }}</span>
+                            <span class="metric-value">{{ row.value|floatformat:0 }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="forecast-card" style="border-left: 3px solid var(--success);">
+                    <h4 style="color: var(--success);">🔮 Forecast — Next {{ periods }} Years</h4>
+                    {% for row in result.forecast %}
+                        <div class="metric-row">
+                            <span class="metric-label">Year {{ row.year }}</span>
+                            <span class="metric-value">
+                                {{ row.predicted|floatformat:0 }}
+                                <span style="color: var(--muted); font-size: 0.7rem;">
+                                    ({{ row.lower|floatformat:0 }} – {{ row.upper|floatformat:0 }})
+                                </span>
+                            </span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="text-center">
+                    <a href="{% url 'forecasting:save_forecast' company.company_id %}?metric={{ metric }}{% if segment %}&segment={{ segment }}{% endif %}" class="btn-save">💾 Save to Database</a>
+                </div>
+            {% else %}
+                <div class="forecast-card text-center">
+                    <p style="color: var(--danger);">{{ result.error }}</p>
+                    <p style="color: var(--muted); font-size: 0.85rem;">Upload at least 2 annual reports with financial data to enable forecasting.</p>
+                </div>
+            {% endif %}
+
+            <div class="text-center mt-4">
+                <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">← Back to Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="sentinel-statusbar d-flex flex-wrap justify-content-between align-items-center">
+    <div><div><span class="status-dot"></span>FORECAST ENGINE ACTIVE</div><div class="status-sub">LINEAR REGRESSION + SEGMENTS</div></div>
+    <div class="text-end"><div>FORECASTING MODULE</div><div class="status-sub">CPIP PLATFORM V1</div></div>
+</footer>
+
+{% endblock %}

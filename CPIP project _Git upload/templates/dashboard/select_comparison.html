@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Compare Companies | CPIP{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0A0D14; --bg-glow: #0E1522; --panel: #11151F; --panel-2: #161B27;
+        --border: #232A38; --accent: #4FA8E8; --accent-soft: #7FC4F0;
+        --text: #EDEFF4; --muted: #7B8494; --muted-2: #545C6B;
+        --success: #3DDC84; --danger: #E8615D; --warning: #E8B84F;
+    }
+    body { background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%); background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+    .sentinel-topbar { border-bottom: 1px solid var(--border); padding: 1rem 1.75rem; }
+    .sentinel-topbar .brand { font-weight: 700; font-size: 1.1rem; color: var(--accent-soft); text-decoration: none; font-family: 'Space Grotesk', sans-serif; }
+    .sentinel-topbar .version-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-left: 0.6rem; }
+    .sentinel-nav a { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 4px; }
+    .sentinel-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-soft); text-align: center; display: block; margin-bottom: 0.75rem; }
+    .hero-heading { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); text-align: center; color: var(--text); margin-bottom: 2rem; }
+
+    .select-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 2rem; max-width: 720px; margin: 0 auto; }
+    .form-label { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 0.5rem; display: block; }
+    .form-select { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; padding: 0.7rem 1rem; width: 100%; }
+    .form-select:focus { background: var(--panel-2); border-color: var(--accent); color: var(--text); outline: none; }
+    .form-select option { background: var(--panel-2); color: var(--text); }
+    .vs-divider { text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: var(--accent-soft); margin: 1rem 0; font-weight: 700; }
+
+    .btn-analyze { background: var(--accent); border: 1px solid var(--accent); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.75rem 2rem; border-radius: 8px; transition: background 0.15s ease, box-shadow 0.15s ease; display: inline-block; text-decoration: none; cursor: pointer; }
+    .btn-analyze:hover { background: var(--accent-soft); box-shadow: 0 0 24px rgba(79, 168, 232, 0.35); color: #06121F; }
+
+    .btn-primary-sentinel { background: var(--accent); border: 1px solid var(--accent); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.5rem 1.5rem; border-radius: 6px; text-decoration: none; display: inline-block; }
+    .btn-primary-sentinel:hover { background: var(--accent-soft); color: #06121F; }
+
+    .sentinel-statusbar { border-top: 1px solid var(--border); padding: 0.9rem 1.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); margin-right: 0.4rem; }
+    .status-sub { font-size: 0.65rem; color: var(--muted-2); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="sentinel-topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'reports:upload_report' %}" class="brand">CPIP</a>
+        <span class="version-tag">COMPARISON MODULE</span>
+    </div>
+    <nav class="sentinel-nav d-flex align-items-center gap-2">
+        <a href="{% url 'reports:report_list' %}">Reports</a>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </nav>
+</header>
+
+<div class="container-xl py-5">
+    <span class="eyebrow">⚖️ Multi-Company Comparison</span>
+    <h1 class="hero-heading">Compare Two Companies</h1>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="select-panel">
+                <form method="get" action="{% url 'dashboard:comparison_pdf' %}">
+                    <div class="mb-3">
+                        <label class="form-label">Company A</label>
+                        <select name="company_a" class="form-select" required>
+                            <option value="">-- Select --</option>
+                            {% for c in companies %}
+                                <option value="{{ c.company_id }}">{{ c.company_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="vs-divider">VS</div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Company B</label>
+                        <select name="company_b" class="form-select" required>
+                            <option value="">-- Select --</option>
+                            {% for c in companies %}
+                                <option value="{{ c.company_id }}">{{ c.company_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn-analyze">📄 Generate Comparison PDF</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">← Back to Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="sentinel-statusbar d-flex flex-wrap justify-content-between align-items-center">
+    <div><div><span class="status-dot"></span>COMPARISON ENGINE</div><div class="status-sub">SIDE-BY-SIDE ANALYTICS</div></div>
+    <div class="text-end"><div>DASHBOARD MODULE</div><div class="status-sub">CPIP PLATFORM V1</div></div>
+</footer>
+
+{% endblock %}

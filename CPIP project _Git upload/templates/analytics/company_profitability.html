@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Profitability | CPIP{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0A0D14; --bg-glow: #0E1522; --panel: #11151F;
+        --border: #232A38; --accent: #4FA8E8; --accent-soft: #7FC4F0;
+        --text: #EDEFF4; --muted: #7B8494; --muted-2: #545C6B;
+        --success: #3DDC84; --danger: #E8615D; --warning: #E8B84F;
+    }
+    body { background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%); background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+    .sentinel-topbar { border-bottom: 1px solid var(--border); padding: 1rem 1.75rem; }
+    .sentinel-topbar .brand { font-weight: 700; font-size: 1.1rem; color: var(--accent-soft); text-decoration: none; font-family: 'Space Grotesk', sans-serif; }
+    .sentinel-topbar .version-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-left: 0.6rem; }
+    .sentinel-nav a { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 4px; }
+    .sentinel-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-soft); text-align: center; display: block; margin-bottom: 0.75rem; }
+    .hero-heading { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); text-align: center; color: var(--text); margin-bottom: 2rem; }
+    .profit-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .year-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--accent-soft); border: 1px solid rgba(79, 168, 232, 0.3); border-radius: 4px; padding: 0.2rem 1rem; display: inline-block; }
+    .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+    .metric-row:last-child { border-bottom: none; }
+    .metric-label { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .metric-value { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text); }
+    .growth-positive { color: var(--success); } .growth-negative { color: var(--danger); } .growth-neutral { color: var(--warning); }
+    .level-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; text-transform: uppercase; border-radius: 4px; padding: 0.3rem 1rem; display: inline-block; }
+    .level-strong { background: rgba(61, 220, 132, 0.15); color: var(--success); border: 1px solid rgba(61, 220, 132, 0.3); }
+    .level-moderate { background: rgba(79, 168, 232, 0.15); color: var(--accent-soft); border: 1px solid rgba(79, 168, 232, 0.3); }
+    .level-average { background: rgba(232, 184, 79, 0.15); color: var(--warning); border: 1px solid rgba(232, 184, 79, 0.3); }
+    .level-weak { background: rgba(232, 97, 93, 0.15); color: var(--danger); border: 1px solid rgba(232, 97, 93, 0.3); }
+    .btn-primary-sentinel { background: var(--accent); border: 1px solid var(--accent); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.5rem 1.5rem; border-radius: 6px; text-decoration: none; display: inline-block; }
+    .btn-primary-sentinel:hover { background: var(--accent-soft); color: #06121F; }
+    .sentinel-statusbar { border-top: 1px solid var(--border); padding: 0.9rem 1.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); margin-right: 0.4rem; }
+    .status-sub { font-size: 0.65rem; color: var(--muted-2); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="sentinel-topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'reports:upload_report' %}" class="brand">CPIP</a>
+        <span class="version-tag">ANALYTICS MODULE</span>
+    </div>
+    <nav class="sentinel-nav d-flex align-items-center gap-2">
+        <a href="{% url 'reports:report_list' %}">Reports</a>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </nav>
+</header>
+
+<div class="container-xl py-5">
+    <span class="eyebrow">Profitability Analysis</span>
+    <h1 class="hero-heading">{{ company.company_name }} — Profitability</h1>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+        {% if profitability_data.error %}
+            <div class="profit-card text-center">
+                <p style="color: var(--danger);">{{ profitability_data.error }}</p>
+                <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">Back to Reports</a>
+            </div>
+        {% else %}
+            <div class="profit-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="year-badge">{{ profitability_data.company }}</span>
+                    <span class="level-badge level-{{ profitability_data.overall_assessment.profitability_level|lower|default:'average' }}">
+                        {{ profitability_data.overall_assessment.profitability_level|default:'Average'|upper }}
+                    </span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Industry</span>
+                    <span class="metric-value">{{ profitability_data.industry|default:'Not specified' }}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Years Analyzed</span>
+                    <span class="metric-value">{{ profitability_data.average_profitability.years_analyzed|default:0 }}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Average Profit Margin</span>
+                    <span class="metric-value">
+                        {% if profitability_data.average_profitability.avg_profit_margin is not None %}
+                            <span class="{% if profitability_data.average_profitability.avg_profit_margin > 10 %}growth-positive{% elif profitability_data.average_profitability.avg_profit_margin > 5 %}growth-neutral{% else %}growth-negative{% endif %}">
+                                {{ profitability_data.average_profitability.avg_profit_margin|floatformat:1 }}%
+                            </span>
+                        {% else %}<span class="growth-neutral">Not enough data</span>{% endif %}
+                    </span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Outlook</span>
+                    <span class="metric-value">{{ profitability_data.overall_assessment.outlook|default:'Neutral' }}</span>
+                </div>
+            </div>
+
+            <div class="profit-card">
+                <h4 style="font-family: 'JetBrains Mono', monospace; color: var(--accent-soft); margin-bottom: 1rem;">📊 Year-over-Year Profitability</h4>
+                {% for y in profitability_data.yearly_profitability %}
+                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="year-badge" style="font-size: 0.8rem;">{{ y.year }}</span>
+                            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted);">
+                                Revenue: {% if y.revenue %}{{ y.revenue|floatformat:0 }}{% else %}N/A{% endif %}
+                            </span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Profit Margin</span>
+                            <span class="metric-value">
+                                {% if y.profit_margin is not None %}
+                                    <span class="{% if y.profit_margin > 10 %}growth-positive{% elif y.profit_margin > 5 %}growth-neutral{% else %}growth-negative{% endif %}">
+                                        {{ y.profit_margin|floatformat:1 }}%
+                                    </span>
+                                {% else %}<span class="growth-neutral">N/A</span>{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">← Back to Reports</a>
+            </div>
+        {% endif %}
+        </div>
+    </div>
+</div>
+
+<footer class="sentinel-statusbar d-flex flex-wrap justify-content-between align-items-center">
+    <div><div><span class="status-dot"></span>SYSTEM STATUS: OPERATIONAL</div><div class="status-sub">PROFITABILITY ENGINE ACTIVE</div></div>
+    <div class="text-end"><div>ANALYTICS MODULE</div><div class="status-sub">CPIP PLATFORM V1</div></div>
+</footer>
+
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Company Comparison | CPIP{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0A0D14; --bg-glow: #0E1522; --panel: #11151F; --panel-2: #161B27;
+        --border: #232A38; --accent: #4FA8E8; --accent-soft: #7FC4F0;
+        --text: #EDEFF4; --muted: #7B8494; --muted-2: #545C6B;
+        --success: #3DDC84; --danger: #E8615D; --warning: #E8B84F;
+    }
+    body {
+        background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%);
+        background-color: var(--bg); color: var(--text);
+        font-family: 'Space Grotesk', sans-serif; min-height: 100vh;
+    }
+    .sentinel-topbar { border-bottom: 1px solid var(--border); padding: 1rem 1.75rem; }
+    .sentinel-topbar .brand { font-weight: 700; font-size: 1.1rem; color: var(--accent-soft); text-decoration: none; font-family: 'Space Grotesk', sans-serif; }
+    .sentinel-topbar .version-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-left: 0.6rem; }
+    .sentinel-nav a { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 4px; }
+    .sentinel-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-soft); text-align: center; display: block; margin-bottom: 0.75rem; }
+    .hero-heading { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); text-align: center; color: var(--text); margin-bottom: 2rem; }
+    .comparison-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .year-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--accent-soft); border: 1px solid rgba(79, 168, 232, 0.3); border-radius: 4px; padding: 0.2rem 1rem; display: inline-block; }
+    .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+    .metric-row:last-child { border-bottom: none; }
+    .metric-label { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .metric-value { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text); }
+    .growth-positive { color: var(--success); }
+    .growth-negative { color: var(--danger); }
+    .growth-neutral { color: var(--warning); }
+    .trend-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; text-transform: uppercase; border-radius: 4px; padding: 0.2rem 0.7rem; display: inline-block; }
+    .trend-increasing { background: rgba(61, 220, 132, 0.15); color: var(--success); border: 1px solid rgba(61, 220, 132, 0.3); }
+    .trend-decreasing { background: rgba(232, 97, 93, 0.15); color: var(--danger); border: 1px solid rgba(232, 97, 93, 0.3); }
+    .trend-stable { background: rgba(232, 184, 79, 0.15); color: var(--warning); border: 1px solid rgba(232, 184, 79, 0.3); }
+    .btn-primary-sentinel { background: var(--accent); border: 1px solid var(--accent); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.5rem 1.5rem; border-radius: 6px; text-decoration: none; display: inline-block; }
+    .btn-primary-sentinel:hover { background: var(--accent-soft); color: #06121F; }
+    .sentinel-statusbar { border-top: 1px solid var(--border); padding: 0.9rem 1.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); margin-right: 0.4rem; }
+    .status-sub { font-size: 0.65rem; color: var(--muted-2); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="sentinel-topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'reports:upload_report' %}" class="brand">CPIP</a>
+        <span class="version-tag">ANALYTICS MODULE</span>
+    </div>
+    <nav class="sentinel-nav d-flex align-items-center gap-2">
+        <a href="{% url 'reports:report_list' %}">Reports</a>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </nav>
+</header>
+
+<div class="container-xl py-5">
+    <span class="eyebrow">Performance Analysis</span>
+    <h1 class="hero-heading">{{ company.company_name }} — Year-over-Year</h1>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+        {% if comparison_data.error %}
+            <div class="comparison-card text-center">
+                <p style="color: var(--danger);">{{ comparison_data.error }}</p>
+                <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">Back to Reports</a>
+            </div>
+        {% else %}
+            <div class="comparison-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="year-badge">{{ comparison_data.total_years }} Years</span>
+                    <span class="year-badge" style="color: var(--muted); border-color: var(--border);">{{ comparison_data.company }}</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for year in comparison_data.years %}<span class="year-badge" style="font-size: 0.8rem;">{{ year }}</span>{% endfor %}
+                </div>
+            </div>
+
+            {% for c in comparison_data.comparisons %}
+            <div class="comparison-card">
+                <div class="mb-3"><span class="year-badge">{{ c.current_year }} vs {{ c.previous_year }}</span></div>
+
+                <div class="metric-row">
+                    <span class="metric-label">Revenue Growth</span>
+                    <span class="metric-value">
+                        {% if c.revenue_growth is not None %}
+                            <span class="{% if c.revenue_growth > 0 %}growth-positive{% elif c.revenue_growth < 0 %}growth-negative{% else %}growth-neutral{% endif %}">{{ c.revenue_growth|floatformat:1 }}%</span>
+                        {% else %}<span class="growth-neutral">N/A</span>{% endif %}
+                    </span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Profit Growth</span>
+                    <span class="metric-value">
+                        {% if c.profit_growth is not None %}
+                            <span class="{% if c.profit_growth > 0 %}growth-positive{% elif c.profit_growth < 0 %}growth-negative{% else %}growth-neutral{% endif %}">{{ c.profit_growth|floatformat:1 }}%</span>
+                        {% else %}<span class="growth-neutral">N/A</span>{% endif %}
+                    </span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Assets Growth</span>
+                    <span class="metric-value">
+                        {% if c.assets_growth is not None %}
+                            <span class="{% if c.assets_growth > 0 %}growth-positive{% elif c.assets_growth < 0 %}growth-negative{% else %}growth-neutral{% endif %}">{{ c.assets_growth|floatformat:1 }}%</span>
+                        {% else %}<span class="growth-neutral">N/A</span>{% endif %}
+                    </span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Debt Growth</span>
+                    <span class="metric-value">
+                        {% if c.debt_growth is not None %}
+                            <span class="{% if c.debt_growth > 0 %}growth-negative{% elif c.debt_growth < 0 %}growth-positive{% else %}growth-neutral{% endif %}">{{ c.debt_growth|floatformat:1 }}%</span>
+                        {% else %}<span class="growth-neutral">N/A</span>{% endif %}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if trend_data and not trend_data.error %}
+            <div class="comparison-card">
+                <h4 style="font-family: 'JetBrains Mono', monospace; color: var(--accent-soft); margin-bottom: 1rem;">📈 Trend Analysis</h4>
+                <div class="metric-row">
+                    <span class="metric-label">Revenue Trend</span>
+                    <span class="metric-value"><span class="trend-badge trend-{{ trend_data.overall_assessment.revenue|default:'stable' }}">{{ trend_data.overall_assessment.revenue|default:'stable'|upper }}</span></span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Profit Trend</span>
+                    <span class="metric-value"><span class="trend-badge trend-{{ trend_data.overall_assessment.profit|default:'stable' }}">{{ trend_data.overall_assessment.profit|default:'stable'|upper }}</span></span>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="text-center mt-4">
+                <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">← Back to Reports</a>
+            </div>
+        {% endif %}
+        </div>
+    </div>
+</div>
+
+<footer class="sentinel-statusbar d-flex flex-wrap justify-content-between align-items-center">
+    <div><div><span class="status-dot"></span>SYSTEM STATUS: OPERATIONAL</div><div class="status-sub">COMPARISON ENGINE ACTIVE</div></div>
+    <div class="text-end"><div>ANALYTICS MODULE</div><div class="status-sub">CPIP PLATFORM V1</div></div>
+</footer>
+
+{% endblock %}

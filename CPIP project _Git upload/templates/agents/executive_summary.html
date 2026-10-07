@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Executive Summary | CPIP{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0A0D14; --bg-glow: #0E1522; --panel: #11151F;
+        --border: #232A38; --accent: #4FA8E8; --accent-soft: #7FC4F0;
+        --text: #EDEFF4; --muted: #7B8494; --muted-2: #545C6B;
+        --success: #3DDC84; --danger: #E8615D; --warning: #E8B84F;
+        --purple: #8B5CF6; --purple-soft: #A78BFA;
+    }
+    body { background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%); background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+    .sentinel-topbar { border-bottom: 1px solid var(--border); padding: 1rem 1.75rem; }
+    .sentinel-topbar .brand { font-weight: 700; font-size: 1.1rem; color: var(--accent-soft); text-decoration: none; font-family: 'Space Grotesk', sans-serif; }
+    .sentinel-topbar .version-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-left: 0.6rem; }
+    .sentinel-nav a { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 4px; }
+    .sentinel-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-soft); text-align: center; display: block; margin-bottom: 0.75rem; }
+    .hero-heading { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); text-align: center; color: var(--text); margin-bottom: 1rem; }
+    .headline { text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent-soft); margin-bottom: 2rem; padding: 0.75rem 1.5rem; border: 1px solid var(--accent); border-radius: 8px; display: inline-block; }
+    .exec-card { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .exec-card h4 { font-family: 'JetBrains Mono', monospace; color: var(--accent-soft); margin-bottom: 1rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    .exec-card p { color: var(--text); font-size: 0.95rem; line-height: 1.7; margin-bottom: 0; }
+    .insight-item { padding: 0.5rem 0; border-bottom: 1px solid var(--border); color: var(--text); font-size: 0.92rem; }
+    .insight-item:last-child { border-bottom: none; }
+    .badge-ai { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--purple-soft); border: 1px solid var(--purple); border-radius: 4px; padding: 0.15rem 0.6rem; letter-spacing: 0.08em; }
+    .btn-primary-sentinel { background: var(--accent); border: 1px solid var(--accent); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.5rem 1.5rem; border-radius: 6px; text-decoration: none; display: inline-block; }
+    .btn-primary-sentinel:hover { background: var(--accent-soft); color: #06121F; }
+    .sentinel-statusbar { border-top: 1px solid var(--border); padding: 0.9rem 1.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); margin-right: 0.4rem; }
+    .status-sub { font-size: 0.65rem; color: var(--muted-2); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="sentinel-topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'reports:upload_report' %}" class="brand">CPIP</a>
+        <span class="version-tag">AI AGENTS MODULE</span>
+    </div>
+    <nav class="sentinel-nav d-flex align-items-center gap-2">
+        <a href="{% url 'reports:report_list' %}">Reports</a>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </nav>
+</header>
+
+<div class="container-xl py-5">
+    <span class="eyebrow">📋 Executive Briefing</span>
+    <h1 class="hero-heading">{{ company.company_name }}</h1>
+
+    <div style="text-align: center;">
+        {% if summary.headline %}
+            <div class="headline">{{ summary.headline }}</div>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9 mx-auto">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <span class="badge-ai">BOARDROOM-READY · POWERED BY GEMINI</span>
+            </div>
+
+            {% if summary.situation_overview %}
+            <div class="exec-card">
+                <h4>📌 Situation Overview</h4>
+                <p>{{ summary.situation_overview }}</p>
+            </div>
+            {% endif %}
+
+            {% if summary.key_findings %}
+            <div class="exec-card">
+                <h4>🔍 Key Findings</h4>
+                {% for f in summary.key_findings %}<div class="insight-item">• {{ f }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            {% if summary.critical_risks %}
+            <div class="exec-card" style="border-left-color: var(--danger);">
+                <h4 style="color: var(--danger);">⚠️ Critical Risks</h4>
+                {% for r in summary.critical_risks %}<div class="insight-item">• {{ r }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            {% if summary.strategic_priorities %}
+            <div class="exec-card" style="border-left-color: var(--warning);">
+                <h4 style="color: var(--warning);">🎯 Strategic Priorities</h4>
+                {% for p in summary.strategic_priorities %}<div class="insight-item">→ {{ p }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            {% if summary.board_recommendation %}
+            <div class="exec-card" style="border-left-color: var(--success);">
+                <h4 style="color: var(--success);">✅ Board Recommendation</h4>
+                <p>{{ summary.board_recommendation }}</p>
+            </div>
+            {% endif %}
+
+            <div class="text-center mt-4">
+                <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">← Back to Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="sentinel-statusbar d-flex flex-wrap justify-content-between align-items-center">
+    <div><div><span class="status-dot"></span>AI SUMMARY AGENT ACTIVE</div><div class="status-sub">EXECUTIVE BRIEFING ENGINE</div></div>
+    <div class="text-end"><div>AGENTS MODULE</div><div class="status-sub">CPIP PLATFORM V1</div></div>
+</footer>
+
+{% endblock %}

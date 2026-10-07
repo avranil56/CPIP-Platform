@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Strategic Recommendations | CPIP{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0A0D14; --bg-glow: #0E1522; --panel: #11151F;
+        --border: #232A38; --accent: #4FA8E8; --accent-soft: #7FC4F0;
+        --text: #EDEFF4; --muted: #7B8494; --muted-2: #545C6B;
+        --success: #3DDC84; --danger: #E8615D; --warning: #E8B84F;
+        --purple: #8B5CF6; --purple-soft: #A78BFA;
+    }
+    body { background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%); background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+    .sentinel-topbar { border-bottom: 1px solid var(--border); padding: 1rem 1.75rem; }
+    .sentinel-topbar .brand { font-weight: 700; font-size: 1.1rem; color: var(--accent-soft); text-decoration: none; font-family: 'Space Grotesk', sans-serif; }
+    .sentinel-topbar .version-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-left: 0.6rem; }
+    .sentinel-nav a { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 4px; }
+    .sentinel-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--warning); text-align: center; display: block; margin-bottom: 0.75rem; }
+    .hero-heading { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); text-align: center; color: var(--text); margin-bottom: 2rem; }
+    .ai-card { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--warning); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .ai-card h4 { font-family: 'JetBrains Mono', monospace; color: var(--warning); margin-bottom: 1rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    .ai-card p { color: var(--text); font-size: 0.95rem; line-height: 1.6; margin-bottom: 0; }
+    .insight-item { padding: 0.5rem 0; border-bottom: 1px solid var(--border); color: var(--text); font-size: 0.92rem; }
+    .insight-item:last-child { border-bottom: none; }
+    .badge-ai { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--purple-soft); border: 1px solid var(--purple); border-radius: 4px; padding: 0.15rem 0.6rem; letter-spacing: 0.08em; }
+    .btn-primary-sentinel { background: var(--accent); border: 1px solid var(--accent); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.5rem 1.5rem; border-radius: 6px; text-decoration: none; display: inline-block; }
+    .btn-primary-sentinel:hover { background: var(--accent-soft); color: #06121F; }
+    .sentinel-statusbar { border-top: 1px solid var(--border); padding: 0.9rem 1.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); margin-right: 0.4rem; }
+    .status-sub { font-size: 0.65rem; color: var(--muted-2); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="sentinel-topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'reports:upload_report' %}" class="brand">CPIP</a>
+        <span class="version-tag">AI AGENTS MODULE</span>
+    </div>
+    <nav class="sentinel-nav d-flex align-items-center gap-2">
+        <a href="{% url 'reports:report_list' %}">Reports</a>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </nav>
+</header>
+
+<div class="container-xl py-5">
+    <span class="eyebrow">🎯 AI Strategic Recommendations</span>
+    <h1 class="hero-heading">{{ company.company_name }} — Strategy</h1>
+
+    <div class="row">
+        <div class="col-lg-9 mx-auto">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <span class="badge-ai">POWERED BY GEMINI</span>
+            </div>
+
+            {% if recs.executive_direction %}
+            <div class="ai-card">
+                <h4>🧭 Executive Direction</h4>
+                <p>{{ recs.executive_direction }}</p>
+            </div>
+            {% endif %}
+
+            {% if recs.short_term_actions %}
+            <div class="ai-card">
+                <h4>⚡ Short-Term Actions (0-6 months)</h4>
+                {% for a in recs.short_term_actions %}<div class="insight-item">→ {{ a }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            {% if recs.medium_term_actions %}
+            <div class="ai-card">
+                <h4>📅 Medium-Term Actions (6-18 months)</h4>
+                {% for a in recs.medium_term_actions %}<div class="insight-item">→ {{ a }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            {% if recs.long_term_initiatives %}
+            <div class="ai-card">
+                <h4>🚀 Long-Term Initiatives (18+ months)</h4>
+                {% for i in recs.long_term_initiatives %}<div class="insight-item">→ {{ i }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            {% if recs.investment_priorities %}
+            <div class="ai-card">
+                <h4>💰 Investment Priorities</h4>
+                {% for p in recs.investment_priorities %}<div class="insight-item">• {{ p }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            {% if recs.risk_mitigation_focus %}
+            <div class="ai-card">
+                <h4>🛡️ Risk Mitigation Focus</h4>
+                {% for f in recs.risk_mitigation_focus %}<div class="insight-item">• {{ f }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="text-center mt-4">
+                <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">← Back to Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="sentinel-statusbar d-flex flex-wrap justify-content-between align-items-center">
+    <div><div><span class="status-dot"></span>AI STRATEGY AGENT ACTIVE</div><div class="status-sub">RECOMMENDATION ENGINE</div></div>
+    <div class="text-end"><div>AGENTS MODULE</div><div class="status-sub">CPIP PLATFORM V1</div></div>
+</footer>
+
+{% endblock %}

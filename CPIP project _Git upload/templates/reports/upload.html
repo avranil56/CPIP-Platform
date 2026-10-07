@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Upload Annual Report | CPIP{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0A0D14;
+        --bg-glow: #0E1522;
+        --panel: #11151F;
+        --panel-2: #161B27;
+        --border: #232A38;
+        --accent: #4FA8E8;
+        --accent-soft: #7FC4F0;
+        --text: #EDEFF4;
+        --muted: #7B8494;
+        --muted-2: #545C6B;
+        --success: #3DDC84;
+        --danger: #E8615D;
+        --warning: #E8B84F;
+    }
+
+    body {
+        background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%);
+        background-color: var(--bg);
+        color: var(--text);
+        font-family: 'Space Grotesk', sans-serif;
+        min-height: 100vh;
+    }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    .sentinel-topbar {
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 1.75rem;
+    }
+
+    .sentinel-topbar .brand {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--accent-soft);
+        text-decoration: none;
+    }
+
+    .sentinel-topbar .version-tag {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-left: 0.6rem;
+    }
+
+    .sentinel-topbar .badge-beta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: var(--accent-soft);
+        border: 1px solid rgba(79, 168, 232, 0.35);
+        border-radius: 3px;
+        padding: 0.25rem 0.55rem;
+    }
+
+    .sentinel-nav a {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 0.4rem 0.7rem;
+        border-radius: 4px;
+        transition: color 0.15s ease, background 0.15s ease;
+    }
+
+    .sentinel-nav a:hover {
+        color: var(--text);
+        background: rgba(255,255,255,0.04);
+    }
+
+    .sentinel-nav a.add-company {
+        color: var(--accent-soft);
+        border: 1px solid rgba(79, 168, 232, 0.3);
+    }
+
+    .sentinel-nav a.add-company:hover {
+        background: rgba(79, 168, 232, 0.1);
+    }
+
+    .side-rail {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        z-index: 5;
+    }
+
+    .side-rail.left { left: 0.9rem; }
+
+    .side-rail span {
+        writing-mode: vertical-rl;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.18em;
+        color: var(--muted-2);
+    }
+
+    .side-rail::before {
+        content: "";
+        position: absolute;
+        top: -3rem;
+        bottom: -3rem;
+        left: -0.5rem;
+        width: 1px;
+        background: var(--border);
+    }
+
+    .eyebrow {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--accent-soft);
+        text-align: center;
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+
+    .hero-heading {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: clamp(2.2rem, 5vw, 3.4rem);
+        text-align: center;
+        color: var(--text);
+        letter-spacing: -0.01em;
+        margin-bottom: 2.25rem;
+    }
+
+    .filing-panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 0 60px rgba(79, 168, 232, 0.06);
+        position: relative;
+    }
+
+    .filing-panel .card-body {
+        padding: 2.25rem 2.25rem 2rem;
+    }
+
+    .field-index {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.68rem;
+        color: var(--accent-soft);
+        letter-spacing: 0.1em;
+        margin-right: 0.5rem;
+    }
+
+    .form-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 500;
+    }
+
+    .form-control, .form-select {
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.9rem;
+        padding: 0.65rem 0.9rem;
+    }
+
+    .form-control::placeholder { color: var(--muted-2); }
+
+    .form-control:focus, .form-select:focus {
+        background: var(--panel-2);
+        border-color: var(--accent);
+        color: var(--text);
+        box-shadow: 0 0 0 3px rgba(79, 168, 232, 0.15);
+    }
+
+    .form-select option {
+        background: var(--panel-2);
+        color: var(--text);
+    }
+
+    .upload-dropzone {
+        border: 1px dashed var(--border);
+        border-radius: 8px;
+        background: var(--panel-2);
+        padding: 1.5rem 1rem;
+        text-align: center;
+        transition: border-color 0.15s ease;
+    }
+
+    .upload-dropzone:hover { border-color: var(--accent); }
+
+    .pdf-badge {
+        display: inline-block;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.08em;
+        color: var(--danger);
+        border: 1px solid rgba(232, 97, 93, 0.4);
+        border-radius: 3px;
+        padding: 0.12rem 0.45rem;
+        margin-top: 0.5rem;
+    }
+
+    .btn-analyze {
+        background: var(--accent);
+        border: 1px solid var(--accent);
+        color: #06121F;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0.7rem 1.9rem;
+        border-radius: 8px;
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-analyze:hover {
+        background: var(--accent-soft);
+        box-shadow: 0 0 24px rgba(79, 168, 232, 0.35);
+        color: #06121F;
+    }
+
+    .stat-chip {
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.05em;
+        color: var(--text);
+    }
+
+    .stat-chip .num {
+        font-weight: 700;
+        color: var(--accent-soft);
+    }
+
+    .sentinel-statusbar {
+        border-top: 1px solid var(--border);
+        padding: 0.9rem 1.75rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.7rem;
+        color: var(--muted);
+    }
+
+    .status-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 6px var(--success);
+        margin-right: 0.4rem;
+    }
+
+    .status-sub {
+        font-size: 0.65rem;
+        color: var(--muted-2);
+        letter-spacing: 0.05em;
+    }
+
+    .alert-sentinel {
+        border: 1px solid var(--border);
+        border-left-width: 3px;
+        border-radius: 8px;
+        background: var(--panel-2);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        color: var(--text);
+    }
+
+    .alert-success.alert-sentinel { border-left-color: var(--success); }
+    .alert-danger.alert-sentinel { border-left-color: var(--danger); }
+    .alert-warning.alert-sentinel { border-left-color: var(--warning); }
+    .alert-info.alert-sentinel { border-left-color: var(--accent); }
+
+    .btn-close { filter: invert(1) grayscale(1) opacity(0.6); }
+
+    @media (max-width: 768px) {
+        .side-rail { display: none; }
+    }
+
+    @media (max-width: 576px) {
+        .filing-panel .card-body { padding: 1.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="side-rail left">
+    <span>INTAKE</span>
+    <span>REPORTS</span>
+    <span>COMPANIES</span>
+</div>
+
+<header class="sentinel-topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'reports:upload_report' %}" class="brand">CPIP</a>
+        <span class="version-tag">INTAKE MODULE 04</span>
+    </div>
+    <nav class="sentinel-nav d-flex align-items-center gap-2">
+        <a href="{% url 'reports:report_list' %}">View All Reports</a>
+        <a href="{% url 'admin:index' %}">Admin Panel</a>
+        <a href="{% url 'admin:core_company_add' %}" class="add-company">+ Add Company</a>
+        <span class="badge-beta ms-2">BETA</span>
+    </nav>
+</header>
+
+<div class="container-xl py-5">
+
+    <span class="eyebrow">Annual Report Intake</span>
+    <h1 class="hero-heading">Upload Report</h1>
+
+    {% if messages %}
+        <div class="row justify-content-center mb-3">
+            <div class="col-lg-7">
+                {% for message in messages %}
+                    <div class="alert alert-sentinel
+                        {% if message.tags == 'success' %}alert-success
+                        {% elif message.tags == 'error' or message.tags == 'danger' %}alert-danger
+                        {% elif message.tags == 'warning' %}alert-warning
+                        {% else %}alert-info{% endif %}
+                        alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="filing-panel">
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="id_company" class="form-label d-block mb-2"><span class="field-index">01</span>Company</label>
+                            <select name="company" id="id_company" class="form-select" required>
+                                <option value="" selected disabled>Select a company&hellip;</option>
+                                {% for company in companies %}
+                                    <option value="{{ company.company_id }}">{{ company.company_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_year" class="form-label d-block mb-2"><span class="field-index">02</span>Reporting Year</label>
+                            <input type="number" name="year" id="id_year" class="form-control"
+                                   min="1990" max="2100" placeholder="e.g. 2025" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_file" class="form-label d-block mb-2"><span class="field-index">03</span>Annual Report File</label>
+                            <div class="upload-dropzone">
+                                <input type="file" name="report_file" id="id_file" class="form-control" accept="application/pdf" required>
+                                <span class="pdf-badge">PDF ONLY</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-analyze">Upload &amp; Queue</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+                <div class="stat-chip"><span class="num">{{ company_count|default:"0" }}</span> COMPANIES ON FILE</div>
+                <div class="stat-chip">AUTO EXTRACT ON UPLOAD</div>
+                <div class="stat-chip">SECURE STORAGE</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<footer class="sentinel-statusbar d-flex flex-wrap justify-content-between align-items-center">
+    <div>
+        <div><span class="status-dot"></span>SYSTEM STATUS: OPERATIONAL</div>
+        <div class="status-sub">UPLOAD QUEUE: 0 PENDING // MYSQL: CONNECTED</div>
+    </div>
+    <div class="text-end">
+        <div>MODULE 4 · INTAKE</div>
+        <div class="status-sub">CPIP PLATFORM V1</div>
+    </div>
+</footer>
+
+{% endblock %}

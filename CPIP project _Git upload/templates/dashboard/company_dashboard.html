@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard | CPIP{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+    :root {
+        --bg: #0A0D14; --bg-glow: #0E1522; --panel: #11151F; --panel-2: #161B27;
+        --border: #232A38; --accent: #4FA8E8; --accent-soft: #7FC4F0;
+        --text: #EDEFF4; --muted: #7B8494; --muted-2: #545C6B;
+        --success: #3DDC84; --danger: #E8615D; --warning: #E8B84F;
+    }
+    body { background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%); background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+    .sentinel-topbar { border-bottom: 1px solid var(--border); padding: 1rem 1.75rem; }
+    .sentinel-topbar .brand { font-weight: 700; font-size: 1.1rem; color: var(--accent-soft); text-decoration: none; font-family: 'Space Grotesk', sans-serif; }
+    .sentinel-topbar .version-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-left: 0.6rem; }
+    .sentinel-nav a { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 4px; }
+    .sentinel-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-soft); text-align: center; display: block; margin-bottom: 0.75rem; }
+    .hero-heading { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); text-align: center; color: var(--text); margin-bottom: 2rem; }
+
+    .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+    .chart-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        overflow: hidden;
+    }
+    .chart-card.full-width { grid-column: 1 / -1; }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; }
+    .empty-state .empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.3; }
+    .empty-state h4 { color: var(--muted); font-weight: 500; }
+    .empty-state p { color: var(--muted-2); font-size: 0.9rem; }
+
+    .btn-primary-sentinel { background: var(--accent); border: 1px solid var(--accent); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.5rem 1.5rem; border-radius: 6px; text-decoration: none; display: inline-block; }
+    .btn-primary-sentinel:hover { background: var(--accent-soft); color: #06121F; }
+
+    .sentinel-statusbar { border-top: 1px solid var(--border); padding: 0.9rem 1.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); margin-right: 0.4rem; }
+    .status-sub { font-size: 0.65rem; color: var(--muted-2); }
+
+    @media (max-width: 576px) {
+        .chart-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="sentinel-topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'reports:upload_report' %}" class="brand">CPIP</a>
+        <span class="version-tag">DASHBOARD MODULE</span>
+    </div>
+    <nav class="sentinel-nav d-flex align-items-center gap-2">
+        <a href="{% url 'reports:report_list' %}">Reports</a>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </nav>
+</header>
+
+<div class="container-xl py-5">
+    <span class="eyebrow">📊 Interactive Analytics</span>
+    <h1 class="hero-heading">{{ company.company_name }} — Dashboard</h1>
+
+    {% if has_charts %}
+        <div class="chart-grid">
+            {% if charts.revenue_trend %}
+                <div class="chart-card">{{ charts.revenue_trend|safe }}</div>
+            {% endif %}
+
+            {% if charts.profit_trend %}
+                <div class="chart-card">{{ charts.profit_trend|safe }}</div>
+            {% endif %}
+
+            {% if charts.rev_vs_profit %}
+                <div class="chart-card full-width">{{ charts.rev_vs_profit|safe }}</div>
+            {% endif %}
+
+            {% if charts.margin %}
+                <div class="chart-card">{{ charts.margin|safe }}</div>
+            {% endif %}
+
+            {% if charts.forecast_revenue %}
+                <div class="chart-card">{{ charts.forecast_revenue|safe }}</div>
+            {% endif %}
+
+            {% if charts.segment_pie %}
+                <div class="chart-card">{{ charts.segment_pie|safe }}</div>
+            {% endif %}
+
+            {% if charts.segment_bar %}
+                <div class="chart-card">{{ charts.segment_bar|safe }}</div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📊</div>
+            <h4>No charts available yet</h4>
+            <p class="text-muted">Upload reports and extract financial data to populate the dashboard.</p>
+            <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel mt-3">Back to Reports</a>
+        </div>
+    {% endif %}
+
+    <div class="text-center mt-4">
+        <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">← Back to Reports</a>
+    </div>
+</div>
+
+<footer class="sentinel-statusbar d-flex flex-wrap justify-content-between align-items-center">
+    <div><div><span class="status-dot"></span>DASHBOARD ACTIVE</div><div class="status-sub">PLOTLY RENDERER</div></div>
+    <div class="text-end"><div>DASHBOARD MODULE</div><div class="status-sub">CPIP PLATFORM V1</div></div>
+</footer>
+
+{% endblock %}

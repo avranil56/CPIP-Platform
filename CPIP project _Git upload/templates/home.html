@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}CPIP — Corporate Performance Intelligence Platform{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0A0D14; --bg-glow: #0E1522; --panel: #11151F; --panel-2: #161B27;
+        --border: #232A38; --accent: #4FA8E8; --accent-soft: #7FC4F0;
+        --text: #EDEFF4; --muted: #7B8494; --muted-2: #545C6B;
+        --success: #3DDC84; --danger: #E8615D; --warning: #E8B84F;
+    }
+    body { background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%); background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+    .sentinel-topbar { border-bottom: 1px solid var(--border); padding: 1rem 1.75rem; }
+    .sentinel-topbar .brand { font-weight: 700; font-size: 1.1rem; color: var(--accent-soft); text-decoration: none; font-family: 'Space Grotesk', sans-serif; }
+    .sentinel-topbar .version-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-left: 0.6rem; }
+    .sentinel-nav a { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 4px; transition: color 0.15s ease, background 0.15s ease; }
+    .sentinel-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .sentinel-nav a.primary-cta { color: var(--accent-soft); border: 1px solid rgba(79, 168, 232, 0.35); }
+    .sentinel-nav a.primary-cta:hover { background: rgba(79, 168, 232, 0.1); }
+
+    /* Hero welcome */
+    .hero { text-align: center; padding: 5rem 1rem 2rem; }
+
+    .welcome-heading {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        font-size: clamp(2.4rem, 5.5vw, 4rem);
+        color: var(--accent);
+        letter-spacing: -0.01em;
+        margin-bottom: 0.75rem;
+        animation: welcomeGlow 4s ease-in-out infinite;
+    }
+
+    @keyframes welcomeGlow {
+        0%, 100% { text-shadow: 0 0 20px rgba(79, 168, 232, 0.25), 0 0 40px rgba(79, 168, 232, 0.10); }
+        50%      { text-shadow: 0 0 30px rgba(79, 168, 232, 0.55), 0 0 60px rgba(79, 168, 232, 0.25); }
+    }
+
+    .welcome-fullform {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 400;
+        font-size: clamp(1rem, 1.6vw, 1.25rem);
+        color: var(--accent);
+        letter-spacing: 0.04em;
+        margin-bottom: 0;
+        opacity: 0.92;
+    }
+
+    .hero-divider-gap { height: 4rem; }
+
+    /* Bullet points */
+    .bullets {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        align-items: flex-start;
+        margin-bottom: 3rem;
+        text-align: left;
+    }
+
+    .bullet-row {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        font-family: 'Space Grotesk', sans-serif;
+        color: #FFFFFF;
+        font-weight: 600;
+        font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+    }
+
+    .bullet-dot {
+        display: inline-block;
+        width: 12px; height: 12px;
+        border-radius: 50%;
+        background: #F59E0B;
+        box-shadow: 0 0 12px rgba(245, 158, 11, 0.65), 0 0 24px rgba(245, 158, 11, 0.35);
+        flex-shrink: 0;
+    }
+
+    .bullet-row .stat-value { color: #F59E0B; font-weight: 700; }
+
+    /* Description */
+    .description-gap { height: 2rem; }
+
+    .description {
+        max-width: 720px;
+        margin: 0 auto;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.85rem;
+        font-weight: 400;
+        line-height: 1.85;
+        letter-spacing: 0.01em;
+    }
+
+    .description p { margin-bottom: 0.35rem; }
+
+    /* Actions */
+    .home-actions { text-align: center; padding: 3rem 0 4rem; }
+    .btn-primary-sentinel {
+        background: var(--accent); border: 1px solid var(--accent); color: #06121F;
+        font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.8rem;
+        letter-spacing: 0.06em; text-transform: uppercase;
+        padding: 0.7rem 2rem; border-radius: 8px; text-decoration: none; display: inline-block;
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-primary-sentinel:hover { background: var(--accent-soft); color: #06121F; box-shadow: 0 0 24px rgba(79, 168, 232, 0.4); }
+
+    .sentinel-statusbar { border-top: 1px solid var(--border); padding: 0.9rem 1.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-top: 3rem; }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); margin-right: 0.4rem; }
+    .status-sub { font-size: 0.65rem; color: var(--muted-2); letter-spacing: 0.05em; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="sentinel-topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'home' %}" class="brand">CPIP</a>
+        <span class="version-tag">V1 · PLATFORM</span>
+    </div>
+    <nav class="sentinel-nav d-flex align-items-center gap-2">
+        <a href="{% url 'reports:report_list' %}">Reports</a>
+        <a href="{% url 'dashboard:select_comparison' %}">Compare</a>
+        <a href="{% url 'admin:index' %}">Admin</a>
+        <a href="{% url 'reports:upload_report' %}" class="primary-cta">+ New Report</a>
+    </nav>
+</header>
+
+<div class="hero">
+    <h1 class="welcome-heading">Welcome to CPIP</h1>
+    <p class="welcome-fullform">Corporate Performance Intelligence Platform</p>
+
+    <div class="hero-divider-gap"></div>
+
+    <div style="text-align: center;">
+        <div class="bullets">
+            <div class="bullet-row">
+                <span class="bullet-dot"></span>
+                <span><span class="stat-value">7 AI agents</span> work in sequence to analyze your reports</span>
+            </div>
+            <div class="bullet-row">
+                <span class="bullet-dot"></span>
+                <span>Complete intelligence delivered in <span class="stat-value">under 60 seconds</span></span>
+            </div>
+            <div class="bullet-row">
+                <span class="bullet-dot"></span>
+                <span>Compare any two companies side by side</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="description-gap"></div>
+
+<div class="description">
+    <p>CPIP transforms multi-year annual reports into actionable intelligence using AI-driven extraction and analysis.</p>
+    <p>It detects financial trends, identifies strategic risks, forecasts future performance, and generates boardroom-ready reports.</p>
+    <p>Built for investors, analysts, and corporate strategy teams — turning raw filings into decisions.</p>
+</div>
+
+<div class="home-actions">
+    <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">Enter Platform →</a>
+</div>
+
+<footer class="sentinel-statusbar d-flex flex-wrap justify-content-between align-items-center">
+    <div>
+        <div><span class="status-dot"></span>SYSTEM STATUS: OPERATIONAL</div>
+        <div class="status-sub">{{ stats.companies }} COMPANIES · {{ stats.reports }} REPORTS · {{ stats.segments }} SEGMENTS ANALYZED</div>
+    </div>
+    <div class="text-end">
+        <div>CPIP PLATFORM V1</div>
+        <div class="status-sub">POWERED BY AI</div>
+    </div>
+</footer>
+
+{% endblock %}

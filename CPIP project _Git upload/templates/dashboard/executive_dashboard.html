@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Executive Dashboard | CPIP{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+    :root {
+        --bg: #0A0D14; --bg-glow: #0E1522; --panel: #11151F; --panel-2: #161B27;
+        --border: #232A38; --accent: #4FA8E8; --accent-soft: #7FC4F0;
+        --text: #EDEFF4; --muted: #7B8494; --muted-2: #545C6B;
+        --success: #3DDC84; --danger: #E8615D; --warning: #E8B84F;
+    }
+    body { background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%); background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+    .sentinel-topbar { border-bottom: 1px solid var(--border); padding: 1rem 1.75rem; }
+    .sentinel-topbar .brand { font-weight: 700; font-size: 1.1rem; color: var(--accent-soft); text-decoration: none; font-family: 'Space Grotesk', sans-serif; }
+    .sentinel-topbar .version-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-left: 0.6rem; }
+    .sentinel-nav a { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 4px; }
+    .sentinel-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-soft); text-align: center; display: block; margin-bottom: 0.75rem; }
+    .hero-heading { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); text-align: center; color: var(--text); margin-bottom: 2rem; }
+
+    .exec-section { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; margin-bottom: 1.5rem; }
+    .exec-section h3 { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent-soft); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+    .kpi { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+    .kpi-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+    .kpi-value { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--text); }
+    .kpi-value.positive { color: var(--success); }
+    .kpi-value.negative { color: var(--danger); }
+    .kpi-value.neutral { color: var(--warning); }
+    .kpi-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--muted-2); margin-top: 0.2rem; }
+
+    .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1rem; }
+    .chart-card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem; overflow: hidden; }
+    .chart-card.full-width { grid-column: 1 / -1; }
+
+    .risk-item { padding: 0.6rem 0.9rem; background: var(--panel-2); border-left: 3px solid var(--danger); border-radius: 6px; margin-bottom: 0.5rem; }
+    .risk-item.medium { border-left-color: var(--warning); }
+    .risk-item.low { border-left-color: var(--accent); }
+    .risk-item .risk-name { font-weight: 600; color: var(--text); font-size: 0.9rem; }
+    .risk-item .risk-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
+
+    .segment-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.9rem; background: var(--panel-2); border-radius: 6px; margin-bottom: 0.4rem; }
+    .segment-row .seg-name { font-weight: 600; color: var(--text); font-size: 0.9rem; }
+    .segment-row .seg-value { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent-soft); }
+
+    .health-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; text-transform: uppercase; border-radius: 4px; padding: 0.3rem 1rem; display: inline-block; }
+    .health-strong { background: rgba(61, 220, 132, 0.15); color: var(--success); border: 1px solid rgba(61, 220, 132, 0.3); }
+    .health-neutral { background: rgba(232, 184, 79, 0.15); color: var(--warning); border: 1px solid rgba(232, 184, 79, 0.3); }
+    .health-cautious { background: rgba(79, 168, 232, 0.15); color: var(--accent-soft); border: 1px solid rgba(79, 168, 232, 0.3); }
+    .health-concerning { background: rgba(232, 97, 93, 0.15); color: var(--danger); border: 1px solid rgba(232, 97, 93, 0.3); }
+
+    .btn-export { background: var(--success); border: 1px solid var(--success); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.7rem 2rem; border-radius: 8px; text-decoration: none; display: inline-block; transition: all 0.15s ease; }
+    .btn-export:hover { background: #4ade80; color: #06121F; box-shadow: 0 0 24px rgba(61, 220, 132, 0.35); }
+
+    .btn-primary-sentinel { background: var(--accent); border: 1px solid var(--accent); color: #06121F; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.5rem 1.5rem; border-radius: 6px; text-decoration: none; display: inline-block; }
+    .btn-primary-sentinel:hover { background: var(--accent-soft); color: #06121F; }
+
+    .sentinel-statusbar { border-top: 1px solid var(--border); padding: 0.9rem 1.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); margin-right: 0.4rem; }
+    .status-sub { font-size: 0.65rem; color: var(--muted-2); }
+
+    @media (max-width: 576px) { .chart-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="sentinel-topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'reports:upload_report' %}" class="brand">CPIP</a>
+        <span class="version-tag">EXECUTIVE DASHBOARD</span>
+    </div>
+    <nav class="sentinel-nav d-flex align-items-center gap-2">
+        <a href="{% url 'reports:report_list' %}">Reports</a>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </nav>
+</header>
+
+<div class="container-xl py-5">
+    <span class="eyebrow">📋 Executive Dashboard</span>
+    <h1 class="hero-heading">{{ company.company_name }}</h1>
+
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <a href="{% url 'dashboard:export_pdf' company.company_id %}" class="btn-export">📄 Download PDF Report</a>
+    </div>
+
+    <!-- 1. Key Metrics -->
+    <div class="exec-section">
+        <h3>1. Financial Snapshot</h3>
+        <div class="kpi-grid">
+            {% with latest=metrics_data.reports|last %}
+                <div class="kpi">
+                    <div class="kpi-label">Latest Revenue</div>
+                    <div class="kpi-value">{{ latest.revenue|floatformat:0|default:"N/A" }}</div>
+                    <div class="kpi-sub">{{ latest.year }}</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-label">Latest Profit</div>
+                    <div class="kpi-value">{{ latest.profit|floatformat:0|default:"N/A" }}</div>
+                    <div class="kpi-sub">{{ latest.year }}</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-label">Profit Margin</div>
+                    <div class="kpi-value {% if latest.profit_margin > 10 %}positive{% elif latest.profit_margin > 5 %}neutral{% else %}negative{% endif %}">
+                        {% if latest.profit_margin %}{{ latest.profit_margin|floatformat:2 }}%{% else %}N/A{% endif %}
+                    </div>
+                    <div class="kpi-sub">Latest year</div>
+                </div>
+            {% endwith %}
+            <div class="kpi">
+                <div class="kpi-label">Revenue CAGR</div>
+                <div class="kpi-value {% if cagr_data.cagr.revenue > 0 %}positive{% elif cagr_data.cagr.revenue < 0 %}negative{% else %}neutral{% endif %}">
+                    {% if cagr_data.cagr.revenue %}{{ cagr_data.cagr.revenue|floatformat:1 }}%{% else %}N/A{% endif %}
+                </div>
+                <div class="kpi-sub">Multi-year</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Overall Health</div>
+                <div class="kpi-value">
+                    <span class="health-badge health-{{ growth_summary.overall_health|lower|default:'neutral' }}">
+                        {{ growth_summary.overall_health|default:'N/A'|upper }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Trend Charts -->
+    {% if charts %}
+    <div class="exec-section">
+        <h3>2. Performance Trends</h3>
+        <div class="chart-grid">
+            {% if charts.revenue_trend %}<div class="chart-card">{{ charts.revenue_trend|safe }}</div>{% endif %}
+            {% if charts.profit_trend %}<div class="chart-card">{{ charts.profit_trend|safe }}</div>{% endif %}
+            {% if charts.rev_vs_profit %}<div class="chart-card full-width">{{ charts.rev_vs_profit|safe }}</div>{% endif %}
+            {% if charts.forecast_revenue %}<div class="chart-card full-width">{{ charts.forecast_revenue|safe }}</div>{% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 3. Profitability -->
+    {% if profitability.average_profitability %}
+    <div class="exec-section">
+        <h3>3. Profitability Analysis</h3>
+        <div class="kpi-grid">
+            <div class="kpi">
+                <div class="kpi-label">Avg Profit Margin</div>
+                <div class="kpi-value">
+                    {% if profitability.average_profitability.avg_profit_margin %}
+                        {{ profitability.average_profitability.avg_profit_margin|floatformat:2 }}%
+                    {% else %}N/A{% endif %}
+                </div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Margin Trend</div>
+                <div class="kpi-value">{{ profitability.trends.profit_margin|default:'N/A' }}</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Profitability Level</div>
+                <div class="kpi-value">{{ profitability.overall_assessment.profitability_level|default:'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 4. Segments -->
+    {% if segments %}
+    <div class="exec-section">
+        <h3>4. Business Segments</h3>
+        {% for seg in segments %}
+            <div class="segment-row">
+                <span class="seg-name">{{ seg.segment_name }}</span>
+                <span class="seg-value">{{ seg.segment_revenue|floatformat:0|default:"N/A" }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 5. Risks -->
+    {% if risks %}
+    <div class="exec-section">
+        <h3>5. Top Risks</h3>
+        {% for r in risks %}
+            <div class="risk-item {% if r.severity < 4 %}low{% elif r.severity < 7 %}medium{% endif %}">
+                <div class="risk-name">{{ r.risk_type|slice:"5:" }}</div>
+                <div class="risk-meta">Severity {{ r.severity }}/10 · {{ r.risk_category|upper }}</div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="text-center mt-4">
+        <a href="{% url 'reports:report_list' %}" class="btn-primary-sentinel">← Back to Reports</a>
+    </div>
+</div>
+
+<footer class="sentinel-statusbar d-flex flex-wrap justify-content-between align-items-center">
+    <div><div><span class="status-dot"></span>EXECUTIVE DASHBOARD</div><div class="status-sub">CONSOLIDATED VIEW</div></div>
+    <div class="text-end"><div>DASHBOARD MODULE</div><div class="status-sub">CPIP PLATFORM V1</div></div>
+</footer>
+
+{% endblock %}
